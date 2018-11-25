@@ -11,10 +11,12 @@ class Timetable:
     improvements
 
     """
-
+    num_connect: int
     connections: np.array
-    fares: np.array
+    routes: np.array
     temp_timetable: list
+    indexer: np.array
+    stations: np.array  # []  index is the number of the node
 
     def __init__(self):
         self.temp_timetable = []
@@ -27,7 +29,7 @@ class Timetable:
         pass
 
     def add_connection(self, from_stop: int, to_stop: int, departure: int, arrival: int, route_id: int):
-        connection = [from_stop, to_stop, departure, arrival, route_id]
+        connection = (from_stop, to_stop, departure, arrival, route_id)
 
         for i in connection:
             if not isinstance(i, int):
@@ -43,7 +45,37 @@ class Timetable:
                           'formats': ['i4'] * 5})
 
         # self.connections = np.array(zip(*self.temp_timetable), dtype)
-        self.connections = np.vstack(self.temp_timetable)
-        self.connections = self.connections.view(dtype)
-
+        # n = np.vstack(self.temp_timetable)
+        self.connections = np.array(self.temp_timetable, dtype)
+        self.connections.sort(order='departure')
+        self.num_connect = self.connections.shape[0]
         self.temp_timetable = []
+
+        self.build_structures()
+
+    def build_structures(self):
+        # Sort connections by start time
+
+
+
+        # find
+
+        # [from_station, instant, row in the connections table]
+        self.indexer = np.zeros((self.num_connect, 3), np.int32)
+        self.indexer[:, 2] = np.argsort(self.connections, axis=-1, order=('from', 'departure'))[:]
+        self.indexer[:, 0] = self.connections['from'][self.indexer[:, 2]]
+        self.indexer[:, 1] = self.connections['departure'][self.indexer[:, 2]]
+
+
+        # get all unique connections and list where they appear
+        max_station = max(np.max(self.connections['from']), np.max(self.connections['to']))
+
+        self.stations = np.zeros((max_station +1, 2))
+
+        x, indices = np.unique(self.indexer[:, 0], return_index=True)
+
+        self.stations[x[:], 3] = indices[:]
+
+
+
+        pass

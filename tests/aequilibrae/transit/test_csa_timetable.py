@@ -10,7 +10,7 @@ class TestTimetable(TestCase):
     def test_add_connection(self):
         t = Timetable()
         t.add_connection(13, 16, 20, 35, 30)
-        if t.temp_timetable != [[13, 16, 20, 35, 30]]:
+        if t.temp_timetable != [(13, 16, 20, 35, 30)]:
             self.fail("Adding connection returned wrong value")
 
         # testing wrong inputs
@@ -69,15 +69,17 @@ class TestTimetable(TestCase):
 
         t = Timetable()
         t.add_connection(13, 16, 20, 35, 30)
-        t.add_connection(14, 17, 21, 36, 31)
+        t.add_connection(12, 17, 21, 36, 31)
+        t.add_connection(12, 15, 19, 34, 29)
         t.add_connection(15, 18, 22, 37, 32)
         t.build_connections()
 
         dtype = np.dtype({'names': ['from', 'to', 'departure', 'arrival', 'route_id'],
                           'formats': ['i4'] * 5})
 
-        if not (t.connections == np.array([[(13, 16, 20, 35, 30)],
-                                           [(14, 17, 21, 36, 31)],
+        if not (t.connections == np.array([[(12, 15, 19, 34, 29)],
+                                           [(13, 16, 20, 35, 30)],
+                                           [(12, 17, 21, 36, 31)],
                                            [(15, 18, 22, 37, 32)]], dtype)).all():
 
             self.fail("Did not properly create the connections table")
