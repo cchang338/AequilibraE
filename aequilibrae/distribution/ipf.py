@@ -53,7 +53,7 @@ class Ipf:
 
         self.output = None
         self.error = None
-        self.__required_parameters = ["convergence level", "max iterations", "balancing tolerance"]
+        self.__required_parameters = ["convergence_level_ipf", "max_iterations_ipf", "balancing_tolerance"]
         self.error_free = True
         self.report = ["  #####    IPF computation    #####  ", ""]
         self.gap = None
@@ -100,7 +100,7 @@ class Ipf:
             # check balancing:
             sum_rows = np.nansum(self.rows.data[self.row_field])
             sum_cols = np.nansum(self.columns.data[self.column_field])
-            if abs(sum_rows - sum_cols) > self.parameters["balancing tolerance"]:
+            if abs(sum_rows - sum_cols) > self.parameters["balancing_tolerance"]:
                 self.error = "Vectors are not balanced"
             else:
                 # guarantees that they are precisely balanced
@@ -123,8 +123,8 @@ class Ipf:
         t = clock()
         self.check_data()
         if self.error_free:
-            max_iter = self.parameters["max iterations"]
-            conv_criteria = self.parameters["convergence level"]
+            max_iter = self.parameters["max_iterations_ipf"]
+            conv_criteria = self.parameters["convergence_level_ipf"]
 
             self.output = self.matrix.copy(self.output_name)
             if self.nan_as_zero:

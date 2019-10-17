@@ -35,12 +35,12 @@ from ..parameters import Parameters
 class GravityCalibration:
     """"
         where function is: 'EXPO' or 'POWER'. 'GAMMA' and 'FRICTION FACTORS' to be implemented at a later time
-        parameters are: 'max trip length'
+        parameters are: 'max_trip_length'
         """
 
     def __init__(self, **kwargs):
 
-        self.__required_parameters = ["max trip length", "max iterations", "max error"]
+        self.__required_parameters = ["max_trip_length", "max_iterations_gravity", "max_error_gravity"]
         self.parameters = kwargs.get("parameters", self.get_parameters())
 
         self.nan_as_zero = kwargs.get("nan_as_zero", False)
@@ -86,9 +86,9 @@ class GravityCalibration:
     def calibrate(self):
         t = clock()
         # initialize auxiliary variables
-        max_cost = self.parameters["max trip length"]
-        self.max_iter = self.parameters["max iterations"]
-        self.max_error = self.parameters["max error"]
+        max_cost = self.parameters["max_trip_length"]
+        self.max_iter = self.parameters["max_iterations_gravity"]
+        self.max_error = self.parameters["max_error_gravity"]
 
         # Check the inputs
         self.check_inputs()

@@ -9,7 +9,7 @@ sys.dont_write_bytecode = True
 name = "aequilibrae"
 
 # CREATE THE LOGGER
-temp_folder = Parameters().parameters["system"]["temp directory"]
+temp_folder = Parameters().temp_directory
 if not os.path.isdir(temp_folder):
     temp_folder = tempfile.gettempdir()
 

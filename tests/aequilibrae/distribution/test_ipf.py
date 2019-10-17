@@ -57,7 +57,7 @@ class TestIpf(TestCase):
                 print(f)
             self.fail("Ipf did not converge")
 
-        if fratar.gap > fratar.parameters["convergence level"]:
+        if fratar.gap > fratar.parameters["convergence_level_ipf"]:
             print(fratar.gap)
             for f in fratar.report:
                 print(f)

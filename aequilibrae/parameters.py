@@ -13,7 +13,7 @@ class Parameters:
     system:
     cpus: Maximum threads to be used in any procedure
     default_directory: If is the directory QGIS file opening/saving dialogs will try to open as standard
-    driving side: For purposes of plotting on QGIS
+    driving_side: For purposes of plotting on QGIS
     logging: Level of logging to be written to temp/aequilibrae.log: Levels are those from the Python logging library
                 0: 'NOTSET'
                 10: 'DEBUG'

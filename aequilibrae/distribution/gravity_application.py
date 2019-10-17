@@ -49,7 +49,7 @@ class GravityApplication:
 
     def __init__(self, **kwargs):
 
-        self.__required_parameters = ["max trip length"]
+        self.__required_parameters = ["max_trip_length"]
         self.__required_model = ["function", "parameters"]
 
         self.parameters = kwargs.get("parameters", self.get_parameters())
@@ -72,7 +72,7 @@ class GravityApplication:
     def apply(self):
         self.check_data()
         t = clock()
-        max_cost = self.parameters["max trip length"]
+        max_cost = self.parameters["max_trip_length"]
         # We create the output
         self.output = self.impedance.copy(self.output_name, cores=self.impedance.view_names, names=[self.core_name])
         self.output.computational_view([self.core_name])
