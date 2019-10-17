@@ -27,6 +27,8 @@ class Project:
         copyfile(spatialite_database, file_path)
         self.file_path = file_path
 
+        self.network.initialize()
+
         return "Project created. You are on your way to become an AequilibraE Jedi!"
 
     def load(self):

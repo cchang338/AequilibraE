@@ -2,7 +2,7 @@ class Network:
     def __init__(self):
         pass
 
-    def initialize_network(self):
+    def initialize(self):
         pass
 
     def build_graph(self, mode: str):
