@@ -19,3 +19,15 @@ system:
   driving_side: left
   logging: true
   report zeros: 1
+network:
+  osm:
+    max_query_area_size: 2500000000
+    timeout: 180
+    memory: 0
+    infrastructure: 'way["highway"]'
+    network_type: 'all_private'
+    truncate_by_edge: false
+    clean_periphery: true
+    retain_all: false
+    simplify: true
+
