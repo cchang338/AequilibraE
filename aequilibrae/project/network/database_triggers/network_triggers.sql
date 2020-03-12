@@ -64,7 +64,7 @@ create trigger new_link_b_node before insert on links
         select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
 		ST_MinX(ST_EndPoint(new.geom)) <= r.maxx and ST_MaxX(ST_EndPoint(new.geom)) >= r.minx and
 		ST_MinY(ST_EndPoint(new.geom)) <= r.maxy and ST_MaxY(ST_EndPoint(new.geom)) >= r.miny) OR
-		n.node_id = new.a_node)) = 0
+		n.node_id = new.b_node)) = 0
   begin
     insert intonodes (node_id, is_centroid, geom)
     values ((select coalesce(max(node_id) + 1,1) from nodes), 0, ST_EndPoint(new.geom));
@@ -95,13 +95,12 @@ CREATE TRIGGER update_link_b_node BEFORE UPDATE OF geom ON links
         select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
 		ST_MinX(ST_EndPoint(new.geom)) <= r.maxx and ST_MaxX(ST_EndPoint(new.geom)) >= r.minx and 
 		ST_MinY(ST_EndPoint(new.geom)) <= r.maxy and ST_MaxY(ST_EndPoint(new.geom)) >= r.miny)
-		OR nodes.node_id = new.a_node)) = 0
+		OR nodes.node_id = new.b_node)) = 0
   begin
     insert intonodes (node_id, is_centroid, geom)
     values ((select coalesce(max(node_id) + 1,1) from nodes), 0, ST_EndPoint(new.geom));
   end;
 #
--- @@@@@@@@@@
 create trigger new_link after insert on links
   begin
     -- Update a/b_node AFTER creating a link.
@@ -109,33 +108,33 @@ create trigger new_link after insert on links
     set a_node = (
       select node_id
       from nodes
-      where nodes.geometry = ST_StartPoint(new.geom) and
-      (nodes.rowid in (
-          select rowid from SpatialIndex where f_table_name = 'nodes' and
-          search_frame = ST_StartPoint(new.geom)) or
-        nodes.node_id = new.a_node))
-    where links.rowid = new.rowid;
+      where nodes.geom = ST_StartPoint(new.geom) and
+      (nodes.fid in (
+          select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
+        ST_MinX(ST_StartPoint(new.geom)) <= r.maxx and ST_MaxX(ST_StartPoint(new.geom)) >= r.minx and
+		ST_MinY(ST_StartPoint(new.geom)) <= r.maxy and ST_MaxY(ST_StartPoint(new.geom)) >= r.miny)
+		OR nodes.node_id = new.a_node))
+    where links.fid = new.fid;
     update links
     set b_node = (
       select node_id
       from nodes
-      where nodes.geometry =  ST_EndPoint(links.geometry) and
-      (nodes.rowid in (
-          select rowid from SpatialIndex where f_table_name = 'nodes' and
-          search_frame =  ST_EndPoint(links.geometry)) or
-        nodes.node_id = new.b_node))
-    where links.rowid = new.rowid;
-    update links
-    set distance = GeodesicLength(new.geom)
-    where links.rowid = new.rowid;
-
+      where nodes.geom =  ST_EndPoint(links.geom) and
+      (nodes.fid in (
+          select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
+		ST_MinX(ST_EndPoint(new.geom)) <= r.maxx and ST_MaxX(ST_EndPoint(new.geom)) >= r.minx and
+		ST_MinY(ST_EndPoint(new.geom)) <= r.maxy and ST_MaxY(ST_EndPoint(new.geom)) >= r.miny)
+		OR nodes.node_id = new.b_node))
+    where links.fid = new.fid;
+--    update links
+--    set distance = GeodesicLength(new.geom)
+--    where links.fid = new.fid;
     update links set
         link_id=(select max(link_id)+1 from links)
-    where rowid=NEW.rowid and new.link_id is null;
-
+    where fid=NEW.fid and new.link_id is null;
   end;
 #
-create trigger updated_link_geometry after update of geometry on links
+create trigger updated_link_geometry after update of geom on links
   begin
   -- Update a/b_node AFTER moving a link.
   -- Note that if this TRIGGER is triggered by a node move, then the SpatialIndex may be out of date.
@@ -144,32 +143,34 @@ create trigger updated_link_geometry after update of geometry on links
     set a_node = (
       select node_id
       from nodes
-      where nodes.geometry = ST_StartPoint(new.geom) and
-      (nodes.rowid in (
-          select rowid from SpatialIndex where f_table_name = 'nodes' and
-          search_frame = ST_StartPoint(new.geom)) or
-        nodes.node_id = new.a_node))
-    where links.rowid = new.rowid;
+      where nodes.geom = ST_StartPoint(new.geom) and
+      (nodes.fid in (
+          select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
+		ST_MinX(ST_StartPoint(new.geom)) <= r.maxx and ST_MaxX(ST_StartPoint(new.geom)) >= r.minx and
+		ST_MinY(ST_StartPoint(new.geom)) <= r.maxy and ST_MaxY(ST_StartPoint(new.geom)) >= r.miny)
+		OR nodes.node_id = new.a_node))
+    where links.fid = new.fid;
     update links
     set b_node = (
       select node_id
       from nodes
-      where nodes.geometry =  ST_EndPoint(links.geometry) and
-      (nodes.rowid in (
-          select rowid from SpatialIndex where f_table_name = 'nodes' and
-          search_frame =  ST_EndPoint(links.geometry)) or
-        nodes.node_id = new.b_node))
-    where links.rowid = new.rowid;
+      where nodes.geom =  ST_EndPoint(links.geom) and
+      (nodes.fid in (
+          select n.fid from nodes n join rtree_nodes_geom r ON n.fid=r.id where
+		ST_MinX(ST_EndPoint(new.geom)) <= r.maxx and ST_MaxX(ST_EndPoint(new.geom)) >= r.minx and
+		ST_MinY(ST_EndPoint(new.geom)) <= r.maxy and ST_MaxY(ST_EndPoint(new.geom)) >= r.miny)
+		OR nodes.node_id = new.b_node))
+    where links.fid = new.fid;
     update links
     set distance = 0
-    where links.rowid = new.rowid;
+    where links.fid = new.fid;
 
     -- now delete nodes which no-longer have attached links
     -- limit search to nodes which were attached to this link.
     delete from nodes
     where (node_id = old.a_node or node_id = old.b_node)
-    --and NOT (geometry =  ST_EndPoint(new.geom) OR
-    --         geometry = ST_StartPoint(new.geom))
+    --and NOT (geom =  ST_EndPoint(new.geom) OR
+    --         geom = ST_StartPoint(new.geom))
     and node_id not in (
       select a_node
       from links
@@ -200,28 +201,29 @@ create trigger deleted_link after delete on links
 --
 
 -- when you move a node, move attached links
-create trigger update_node_geometry after update of geometry on nodes
+create trigger update_node_geometry after update of geom on nodes
   begin
     update links
-    set geometry = SetStartPoint(geometry,new.geom)
+    set geom = AsGPB(ST_SetStartPoint(geom, NEW.geom))
     where a_node = new.node_id
-    and ST_StartPoint(geometry) != new.geom;
+    and ST_StartPoint(geom) != new.geom;
     update links
-    set geometry = SetEndPoint(geometry,new.geom)
+    set geom = AsGPB(ST_SetEndPoint(geom,new.geom))
     where b_node = new.node_id
-    and  ST_EndPoint(geometry) != new.geom;
+    and  ST_EndPoint(geom) != new.geom;
   end;
 #
 -- when you move a node on top of another node, steal all links from that node, and delete it.
 -- be careful of merging the a_nodes of attached links to the new node
 -- this may be better as a TRIGGER on links?
-create trigger cannibalise_node before update of geometry on nodes
+-- @@@@@@@@
+create trigger cannibalise_node before update of geom on nodes
   when
     -- detect another node in the new location
     (select count(*)
     from nodes
     where node_id != new.node_id
-    and geometry = new.geom and
+    and geom = new.geom and
     ROWID IN (
       select ROWID from SpatialIndex where f_table_name = 'nodes' and
       search_frame = new.geom)) > 0
@@ -232,7 +234,7 @@ create trigger cannibalise_node before update of geometry on nodes
     where a_node = (select node_id
                     from nodes
                     where node_id != new.node_id
-                    and geometry = new.geom and
+                    and geom = new.geom and
                     ROWID IN (
                       select ROWID from SpatialIndex where f_table_name = 'nodes' and
                       search_frame = new.geom));
@@ -242,14 +244,14 @@ create trigger cannibalise_node before update of geometry on nodes
     where b_node = (select node_id
                     from nodes
                     where node_id != new.node_id
-                    and geometry = new.geom and
+                    and geom = new.geom and
                     ROWID IN (
                       select ROWID from SpatialIndex where f_table_name = 'nodes' and
                       search_frame = new.geom));
     -- delete nodes in same location
     DELETE from nodes
     where node_id != new.node_id
-    and geometry = new.geom and
+    and geom = new.geom and
     ROWID IN (
       select ROWID from SpatialIndex where f_table_name = 'nodes' and
       search_frame = new.geom);
@@ -261,7 +263,7 @@ create trigger no_duplicate_node before insert on nodes
     (select count(*)
     from nodes
     where nodes.node_id != new.node_id
-    and nodes.geometry = new.geom and
+    and nodes.geom = new.geom and
     nodes.ROWID IN (
       select ROWID from SpatialIndex where f_table_name = 'nodes' and
       search_frame = new.geom)) > 0
